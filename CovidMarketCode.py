@@ -5,10 +5,9 @@ from sklearn import metrics
 from sklearn import neighbors
 from sklearn.model_selection import train_test_split
 
-#based on release coivd cases for each country for one day, preict whethetr in the next day there will be a profit in investment
-#lets asssume it costs 0.1% ot buy and sell the data, there mut be at least a 101% stock value the following day
+#based on covid cases for a few countries, predict whether a day trade will be likely profitable
+#lets asssume it costs 0.1% to buy and sell the data, there must be at least a 101% stock value the following day
 # to make single day profits
-# stock price precentage current/previous * 100
 
 findat = pd.read_csv('DATA1002 Spreadsheets - DATA1002 Spreadsheets - Financials CLEANED.csv')
 headat = pd.read_csv('DATA1002 Spreadsheets - DATA1002 Spreadsheets - Health Care CLEANED.csv')
@@ -22,9 +21,7 @@ dfindex['HeaClose'] = (headat['Close'].diff()/headat['Close'])*100
 dfindex['ItClose'] = (itdat['Close'].diff()/itdat['Close'])*100
 dfindex['ResClose'] = (resdat['Close'].diff()/resdat['Close'])*100
 
-## now if there is a larger than 1% increase, it is worth single day investing
-## i will set values at 1 if it is worth investing, and 0 if it is not because
-# this will make the k-nearest neighbours algorithm cleaner to compute and understand
+# If the investment is likely profitable, value wil be set to 1
 
 dfindex.loc[dfindex['FinClose'] >1 , 'FinClose'] = 1
 dfindex.loc[dfindex['FinClose'] <1 , 'FinClose'] = 0
@@ -44,9 +41,7 @@ coviddata['Cases STRAYA'] = bigdf['Cases STRAYA']
 largedata = dfindex.merge(coviddata, left_index=True, right_index=True)
 largedata.dropna(inplace=True)
 
-# above we double check that somehow no NA values where created during the merge
-# change value so buy = 1, dont buy = 0
-#below we build an input loop so that the index could be chosen by the user/ the automatic trading machine
+# below we build an input loop so that the index could be chosen by the user/ the automatic trading machine
 # this input is then converted into a value that can reference the respective column in the code for the training
 
 qo = True
@@ -76,7 +71,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.9,
 random_state=30)
 neigh = neighbors.KNeighborsRegressor(n_neighbors=4).fit(X_train, y_train)
 
-#below we create a few loops for inputting the reported covid cases for the day, we make sure these
+# below we create a few loops for inputting the reported covid cases for the day, we make sure these
 # are numeric so that there is no errors in the test
 
 us_scap = True
@@ -112,8 +107,5 @@ mse = metrics.mean_squared_error(y_test, y_pred)
 print('Root mean squared error (RMSE):', round(sqrt(mse)))
 print('R-squared score:', round(metrics.r2_score(y_test, y_pred)))
 
-#this code could be extremely useful for an automatic Low-Frequency trading machine because it could be easily
-# alltered to simply 'return' a True value that could initiate an investment. However, because
-#most outcomes from the data suggest that there should be no investment made, this would require high value
-#investments which further require high reliabily from the code, trust in the process could be improved by
-# widening the %lossrisk from 1%(line in code 27-34) to a higher percentage(eg 1.5 or 2)
+# This is a very basic trading algorithm but it shows how information can be utilised in code like this
+# and could be extremely useful for an automatic Medium-Frequency trading machines
